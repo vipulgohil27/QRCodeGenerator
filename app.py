@@ -52,16 +52,25 @@ def generate_qr():
         return jsonify({'error': 'At least one of email, phone, or website must be provided'}), 400
 
     # Combine the info into a formatted string
-    content_lines = []
-    if email:
-        content_lines.append(f"Email: {email}")
-    if phone:
-        content_lines.append(f"Phone: {phone}")
-    if website:
-        content_lines.append(f"Website: {website}")
+    qr_content = ''
+    if email and not phone and not website:
+        qr_content = f"mailto:{email}"
+    elif phone and not email and not website:
+        qr_content = f"tel:{phone}"
+    elif website and not email and not phone:
+        qr_content = website
+    else:
+        # Generic text format if multiple fields
+        fields = []
+        if email:
+            fields.append(f"Email:{email}")
+        if phone:
+            fields.append(f"Phone:{phone}")
+        if website:
+            fields.append(f"Website:{website}")
+        qr_content = '; '.join(fields)
 
-    qr_content = '\n'.join(content_lines)
-    logging.info(f"QR Code content:\n{qr_content}")
+    logging.info(f"QR new Code content:\n{qr_content}")
 
     # Generate QR code
     qr = qrcode.QRCode(
@@ -88,3 +97,6 @@ def generate_qr():
 
 if __name__ == '__main__':
     app.run(debug=True)
+##curl --location 'http://localhost:5000/generate_qr' \
+# --header 'Content-Type: application/json' \
+# --data-raw '{"email": "bigdatatech.us@gmail.com", "phone": "+1234567890", "website": "https://bigdatatech.us"}'
